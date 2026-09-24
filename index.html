@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S&D Terminal - Institutional Trade Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">SD</div>
+        <div class="brand-info">
+          <div class="brand-title">ALPHA TERMINAL</div>
+          <span class="brand-tag">Supply & Demand v2.0</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-target="view-dashboard">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Dashboard</span>
+        </button>
+        <button class="nav-item" data-target="view-logger">
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Trade Logger</span>
+        </button>
+        <button class="nav-item" data-target="view-history">
+          <span class="nav-icon">📜</span>
+          <span class="nav-text">Trade History</span>
+        </button>
+        <button class="nav-item" data-target="view-calendar">
+          <span class="nav-icon">📅</span>
+          <span class="nav-text">Trading Calendar</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="db-actions">
+          <button class="btn btn-sm" id="exportJsonBtn">Export JSON</button>
+          <button class="btn btn-sm" id="exportCsvBtn">Export CSV</button>
+          <label class="btn btn-sm" for="importFile">Import Backup</label>
+          <input type="file" id="importFile" accept=".json">
+          <button class="btn btn-sm btn-danger" id="clearAllBtn">Purge Database</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workarea -->
+    <main class="main-content">
+      
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+          <span class="status-indicator"><span class="status-dot"></span> LIVE DB CONNECTED</span>
+        </div>
+      </header>
+
+      <div class="container">
+        
+        <!-- View 1: Professional Institutional Dashboard -->
+        <section id="view-dashboard" class="view-section">
+          
+          <!-- Top Row KPI Grid -->
+          <div class="kpi-grid">
+            <div class="kpi-card accent-net">
+              <span class="kpi-label">Net Realized P&L</span>
+              <span class="kpi-value" id="kpiNetPnl">$0.00</span>
+              <span class="kpi-subtext" id="kpiTotalTrades">0 Total Executions</span>
+            </div>
+            
+            <div class="kpi-card">
+              <span class="kpi-label">Win Rate</span>
+              <span class="kpi-value" id="kpiWinRate">0.0%</span>
+              <div class="kpi-bar-wrapper">
+                <div class="kpi-bar-fill" id="kpiWinRateBar" style="width: 0%;"></div>
+              </div>
+              <span class="kpi-subtext" id="kpiWinLossRatio">0W / 0L / 0BE</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Profit Factor</span>
+              <span class="kpi-value" id="kpiProfitFactor">0.00</span>
+              <span class="kpi-subtext" id="kpiGrossBreakdown">Gross: +$0 / -$0</span>
+            </div>
+
+            <div class="kpi-card">
+              <span class="kpi-label">Avg Planned Risk:Reward</span>
+              <span class="kpi-value" id="kpiAvgRR">0.00R</span>
+              <span class="kpi-subtext">Target Expectancy</span>
+            </div>
+          </div>
+
+          <!-- Middle Row: Equity Curve SVG & Breakdown Side Grid -->
+          <div class="dashboard-grid-2col" style="margin-top: 20px;">
+            
+            <!-- Dynamic Equity Curve Chart Container -->
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Cumulative Performance Curve</span>
+                <span class="badge badge-accent">Real-Time Equity</span>
+              </div>
+              <div class="panel-body">
+                <div class="chart-wrapper">
+                  <svg id="equityChart" viewBox="0 0 600 200" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#00f2fe" stop-opacity="0.0"/>
+                      </linearGradient>
+                    </defs>
+                    <path id="chartArea" fill="url(#chartGradient)" d="" />
+                    <path id="chartLine" fill="none" stroke="#00f2fe" stroke-width="2.5" d="" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Executions Widget -->
+            <div class="panel">
+              <div class="panel-header">
+                <span class="panel-title">Recent Zone Executions</span>
+                <button class="btn btn-sm" id="viewAllExecutionsBtn">View All</button>
+              </div>
+              <div class="panel-body" style="padding: 0;">
+                <div class="recent-trades-list" id="recentTradesList">
+                  <div class="empty-state" style="padding: 20px;">No executions logged yet.</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- View 2: Trade Logger Form -->
+        <section id="view-logger" class="view-section hidden">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="panel-title">Execute Trade Entry</span>
+            </div>
+            <div class="panel-body">
+              <form id="tradeForm">
+                <div class="form-grid">
+                  
+                  <div class="form-group full-width">
+                    <label>Market Direction</label>
+                    <div class="direction-toggle">
+                      <div class="direction-btn selected-long" id="btnLong">LONG (Demand Zone)</div>
+                      <div class="direction-btn" id="btnShort">SHORT (Supply Zone)</div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="symbol">Symbol / Pair</label>
+                    <input type="text" id="symbol" placeholder="EURUSD" required style="text-transform: uppercase;">
+                  </div>
+
+                  <div class="form-group">
+                    <label for="session">Trading Session</label>
+                    <select id="session">
+                      <option value="London">London Open</option>
+                      <option value="New York">New York AM</option>
+                      <option value="NY Lunch">NY PM / Lunch</option>
+                      <option value="Asian">Asian Session</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="htfBias">HTF Trend / Bias</label>
+                    <select id="htfBias">
+                      <option value="Bullish">Bullish Trend</option>
+                      <option value="Bearish">Bearish Trend</option>
+                      <option value="Consolidation">Consolidation / Range</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="poiType">Point of Interest (Zone)</label>
+                    <select id="poiType">
+                      <option value="Supply Zone">Supply Zone</option>
+                      <option value="Demand Zone">Demand Zone</option>
+                      <option value="Rally-Base-Drop (RBD)">Rally-Base-Drop (RBD)</option>
+                      <option value="Drop-Base-Rally (DBR)">Drop-Base-Rally (DBR)</option>
+                      <option value="Drop-Base-Drop (DBD)">Drop-Base-Drop (DBD)</option>
+                      <option value="Rally-Base-Rally (RBR)">Rally-Base-Rally (RBR)</option>
+                      <option value="Fresh Zone">Fresh Zone</option>
+                      <option value="Tested Zone">Tested Zone</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="entryPrice">Entry Price</label>
+                    <input type="number" id="entryPrice" step="any" placeholder="1.08500" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="stopLoss">Stop Loss</label>
+                    <input type="number" id="stopLoss" step="any" placeholder="1.08350" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="takeProfit">Take Profit</label>
+                    <input type="number" id="takeProfit" step="any" placeholder="1.09000" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="pnl">Realized P&L ($)</label>
+                    <input type="number" id="pnl" step="any" placeholder="+250 or -100" required>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="liquidityTarget">Target Zone / Level</label>
+                    <input type="text" id="liquidityTarget" placeholder="e.g., HTF Supply Zone, Unmitigated Demand, Swing High">
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="htfChart">HTF Chart Link (TradingView)</label>
+                    <input type="url" id="htfChart" placeholder="https://www.tradingview.com/x/...">
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="ltfChart">LTF Execution Link (TradingView)</label>
+                    <input type="url" id="ltfChart" placeholder="https://www.tradingview.com/x/...">
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label for="notes">S&D Confluence & Trade Notes</label>
+                    <textarea id="notes" rows="3" placeholder="Detail the zone: Clean departure, fresh vs tested, profit margin..."></textarea>
+                  </div>
+
+                  <div class="form-group full-width" style="margin-top: 6px;">
+                    <button type="submit" class="btn btn-primary btn-block">Log Zone Execution</button>
+                  </div>
+
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- View 3: Trade Execution History -->
+        <section id="view-history" class="view-section hidden">
+          <div class="panel">
+            <div class="panel-header toolbar">
+              <div class="panel-title">Trade Execution Feed</div>
+              <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Filter by symbol, zone, or target..." style="padding: 6px 12px;">
+              </div>
+              <select id="filterSession" style="width: auto; padding: 6px 12px;">
+                <option value="ALL">All Sessions</option>
+                <option value="London">London</option>
+                <option value="New York">New York</option>
+                <option value="NY Lunch">NY Lunch</option>
+                <option value="Asian">Asian</option>
+              </select>
+            </div>
+            
+            <div class="panel-body">
+              <ul class="trade-list" id="tradeList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- View 4: Trading Calendar -->
+        <section id="view-calendar" class="view-section hidden">
+          <div class="panel">
+            <div class="panel-header toolbar">
+              <div class="calendar-controls">
+                <button class="btn btn-sm" id="prevMonthBtn">&lt; Prev</button>
+                <span class="calendar-month-title" id="calendarMonthTitle">Month Year</span>
+                <button class="btn btn-sm" id="nextMonthBtn">Next &gt;</button>
+              </div>
+              <button class="btn btn-sm" id="todayBtn">Today</button>
+            </div>
+            <div class="panel-body">
+              <div class="calendar-header-grid">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Day Detail Modal -->
+  <div class="modal-overlay hidden" id="dayModalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalDateTitle">Trade Executions</h3>
+        <button class="btn-close" id="modalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="trade-list" id="modalTradeList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
