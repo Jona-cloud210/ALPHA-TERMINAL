@@ -30,11 +30,11 @@
         </button>
         <button class="nav-item" data-target="view-logger">
           <span class="nav-icon">📝</span>
-          <span class="nav-text">Trade Logger</span>
+          <span class="nav-text">Trade Journaler</span>
         </button>
         <button class="nav-item" data-target="view-history">
-          <span class="nav-icon">📜</span>
-          <span class="nav-text">Trade History</span>
+          <span class="nav-icon">📖</span>
+          <span class="nav-text">Journal Entries</span>
         </button>
         <button class="nav-item" data-target="view-calendar">
           <span class="nav-icon">📅</span>
@@ -65,7 +65,7 @@
 
       <div class="container">
         
-        <!-- View 1: Professional Institutional Dashboard -->
+        <!-- View 1: Dashboard -->
         <section id="view-dashboard" class="view-section">
           
           <!-- Top Row KPI Grid -->
@@ -98,10 +98,9 @@
             </div>
           </div>
 
-          <!-- Middle Row: Equity Curve SVG & Breakdown Side Grid -->
+          <!-- Middle Row: Performance Curve & Recent Entries -->
           <div class="dashboard-grid-2col" style="margin-top: 20px;">
             
-            <!-- Dynamic Equity Curve Chart Container -->
             <div class="panel">
               <div class="panel-header">
                 <span class="panel-title">Cumulative Performance Curve</span>
@@ -123,15 +122,14 @@
               </div>
             </div>
 
-            <!-- Recent Executions Widget -->
             <div class="panel">
               <div class="panel-header">
-                <span class="panel-title">Recent Zone Executions</span>
+                <span class="panel-title">Recent Journal Entries</span>
                 <button class="btn btn-sm" id="viewAllExecutionsBtn">View All</button>
               </div>
               <div class="panel-body" style="padding: 0;">
                 <div class="recent-trades-list" id="recentTradesList">
-                  <div class="empty-state" style="padding: 20px;">No executions logged yet.</div>
+                  <div class="empty-state" style="padding: 20px;">No journal entries logged yet.</div>
                 </div>
               </div>
             </div>
@@ -140,11 +138,11 @@
 
         </section>
 
-        <!-- View 2: Trade Logger Form -->
+        <!-- View 2: Trade Reflection & Psychology Logger -->
         <section id="view-logger" class="view-section hidden">
           <div class="panel">
             <div class="panel-header">
-              <span class="panel-title">Execute Trade Entry</span>
+              <span class="panel-title">Log Trade & Journal Reflection</span>
             </div>
             <div class="panel-body">
               <form id="tradeForm">
@@ -173,6 +171,54 @@
                     </select>
                   </div>
 
+                  <!-- Setup Grading & Execution Quality -->
+                  <div class="form-group">
+                    <label for="setupGrade">Setup Quality Grade</label>
+                    <select id="setupGrade">
+                      <option value="A+">A+ (Perfect Model Alignment)</option>
+                      <option value="A">A (High Confluence)</option>
+                      <option value="B">B (Moderate Confluence)</option>
+                      <option value="C">C (Low Quality / Forced)</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="executionRating">Execution Rating</label>
+                    <select id="executionRating">
+                      <option value="5">⭐⭐⭐⭐⭐ (Flawless Execution)</option>
+                      <option value="4">⭐⭐⭐⭐ (Good Execution)</option>
+                      <option value="3">⭐⭐⭐ (Minor Mistake)</option>
+                      <option value="2">⭐⭐ (Poor Discipline)</option>
+                      <option value="1">⭐ (Total Rule Break / FOMO)</option>
+                    </select>
+                  </div>
+
+                  <!-- Psychology & Mindset Trackers -->
+                  <div class="form-group">
+                    <label for="mindsetState">Trader Mindset / Emotional State</label>
+                    <select id="mindsetState">
+                      <option value="Calm & Focused">🧘 Calm & Focused</option>
+                      <option value="Confident">🎯 Confident</option>
+                      <option value="Anxious / Hesitant">😰 Anxious / Hesitant</option>
+                      <option value="FOMO / Impatient">🔥 FOMO / Impatient</option>
+                      <option value="Revenge Trading">😤 Revenge Trading</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="mistakeTag">Execution Mistake (If Any)</label>
+                    <select id="mistakeTag">
+                      <option value="None">None (Followed Plan)</option>
+                      <option value="Early Entry (FOMO)">Early Entry (FOMO)</option>
+                      <option value="Late Entry (Chased)">Late Entry (Chased)</option>
+                      <option value="Moved Stop Loss">Moved Stop Loss</option>
+                      <option value="Closed Early (Fear)">Closed Early (Fear)</option>
+                      <option value="Over-leveraged">Over-leveraged</option>
+                      <option value="Ignored HTF Context">Ignored HTF Context</option>
+                    </select>
+                  </div>
+
+                  <!-- Market Mechanics -->
                   <div class="form-group">
                     <label for="htfBias">HTF Trend / Bias</label>
                     <select id="htfBias">
@@ -217,27 +263,23 @@
                   </div>
 
                   <div class="form-group full-width">
-                    <label for="liquidityTarget">Target Zone / Level</label>
-                    <input type="text" id="liquidityTarget" placeholder="e.g., HTF Supply Zone, Unmitigated Demand, Swing High">
-                  </div>
-
-                  <div class="form-group full-width">
-                    <label for="htfChart">HTF Chart Link (TradingView)</label>
+                    <label for="htfChart">TradingView Chart Screenshot Link</label>
                     <input type="url" id="htfChart" placeholder="https://www.tradingview.com/x/...">
                   </div>
 
+                  <!-- Qualitative Reflection Fields -->
                   <div class="form-group full-width">
-                    <label for="ltfChart">LTF Execution Link (TradingView)</label>
-                    <input type="url" id="ltfChart" placeholder="https://www.tradingview.com/x/...">
+                    <label for="preTradeThought">Pre-Trade Plan & Confluence Reflection</label>
+                    <textarea id="preTradeThought" rows="2" placeholder="Why did I enter here? What was the HTF story, zone freshness, and entry trigger?"></textarea>
                   </div>
 
                   <div class="form-group full-width">
-                    <label for="notes">S&D Confluence & Trade Notes</label>
-                    <textarea id="notes" rows="3" placeholder="Detail the zone: Clean departure, fresh vs tested, profit margin..."></textarea>
+                    <label for="postTradeThought">Post-Trade Reflection & Lesson Learned</label>
+                    <textarea id="postTradeThought" rows="2" placeholder="How did I manage the trade? What did I do well, and what could be improved next time?"></textarea>
                   </div>
 
                   <div class="form-group full-width" style="margin-top: 6px;">
-                    <button type="submit" class="btn btn-primary btn-block">Log Zone Execution</button>
+                    <button type="submit" class="btn btn-primary btn-block">Log Journal Entry</button>
                   </div>
 
                 </div>
@@ -246,13 +288,13 @@
           </div>
         </section>
 
-        <!-- View 3: Trade Execution History -->
+        <!-- View 3: Trade Execution Journal Feed -->
         <section id="view-history" class="view-section hidden">
           <div class="panel">
             <div class="panel-header toolbar">
-              <div class="panel-title">Trade Execution Feed</div>
+              <div class="panel-title">Trade Journal Feed</div>
               <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Filter by symbol, zone, or target..." style="padding: 6px 12px;">
+                <input type="text" id="searchInput" placeholder="Filter by symbol, zone, mistake, or setup grade..." style="padding: 6px 12px;">
               </div>
               <select id="filterSession" style="width: auto; padding: 6px 12px;">
                 <option value="ALL">All Sessions</option>
@@ -298,7 +340,7 @@
   <div class="modal-overlay hidden" id="dayModalOverlay">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="modalDateTitle">Trade Executions</h3>
+        <h3 id="modalDateTitle">Trade Journal Executions</h3>
         <button class="btn-close" id="modalCloseBtn">&times;</button>
       </div>
       <div class="modal-body">

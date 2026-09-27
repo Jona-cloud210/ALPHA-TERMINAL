@@ -14,8 +14,8 @@ const pageTitle = document.getElementById('pageTitle');
 
 const titlesMap = {
   'view-dashboard': 'Dashboard Overview',
-  'view-logger': 'Execute Trade Logger',
-  'view-history': 'Trade Execution Records',
+  'view-logger': 'Execute Trade Journaler',
+  'view-history': 'Trade Journal Entries',
   'view-calendar': 'Trading Calendar'
 };
 
@@ -46,7 +46,6 @@ navItems.forEach(item => {
   });
 });
 
-// Utility to re-trigger SVG Chart Drawing Keyframe
 function triggerChartAnimation() {
   const chartLine = document.getElementById('chartLine');
   const chartArea = document.getElementById('chartArea');
@@ -146,7 +145,7 @@ function animateValue(element, start, end, duration, isCurrency = false) {
   function update(currentTime) {
     const elapsed = currentTime - startTime;
     const progress = Math.min(elapsed / duration, 1);
-    const easeProgress = 1 - Math.pow(1 - progress, 3); // Ease-out cubic
+    const easeProgress = 1 - Math.pow(1 - progress, 3);
     const currentValue = start + (range * easeProgress);
 
     if (isCurrency) {
@@ -167,7 +166,7 @@ function animateValue(element, start, end, duration, isCurrency = false) {
   requestAnimationFrame(update);
 }
 
-// Form Submit
+// Form Submit Handler
 document.getElementById('tradeForm').addEventListener('submit', async (e) => {
   e.preventDefault();
 
@@ -181,6 +180,10 @@ document.getElementById('tradeForm').addEventListener('submit', async (e) => {
     symbol: document.getElementById('symbol').value.toUpperCase().trim(),
     direction: currentDirection,
     session: document.getElementById('session').value,
+    setupGrade: document.getElementById('setupGrade').value,
+    executionRating: document.getElementById('executionRating').value,
+    mindsetState: document.getElementById('mindsetState').value,
+    mistakeTag: document.getElementById('mistakeTag').value,
     htfBias: document.getElementById('htfBias').value,
     poiType: document.getElementById('poiType').value,
     entryPrice: entryPrice,
@@ -188,10 +191,9 @@ document.getElementById('tradeForm').addEventListener('submit', async (e) => {
     takeProfit: takeProfit,
     plannedRR: calculateRR(entryPrice, stopLoss, takeProfit, currentDirection),
     pnl: parseFloat(document.getElementById('pnl').value) || 0,
-    liquidityTarget: document.getElementById('liquidityTarget').value.trim(),
     htfChart: document.getElementById('htfChart').value.trim(),
-    ltfChart: document.getElementById('ltfChart').value.trim(),
-    notes: document.getElementById('notes').value.trim()
+    preTradeThought: document.getElementById('preTradeThought').value.trim(),
+    postTradeThought: document.getElementById('postTradeThought').value.trim()
   };
 
   trades.push(newTrade);
@@ -332,7 +334,7 @@ function renderRecentTradesWidget(recentTrades) {
   container.innerHTML = '';
 
   if (recentTrades.length === 0) {
-    container.innerHTML = '<div class="empty-state" style="padding:20px;">No executions logged yet.</div>';
+    container.innerHTML = '<div class="empty-state" style="padding:20px;">No journal entries logged yet.</div>';
     return;
   }
 
@@ -359,7 +361,7 @@ function renderRecentTradesWidget(recentTrades) {
 
 // History & Delete Mechanics
 async function deleteTrade(id) {
-  if (confirm('Permanently delete this trade execution record?')) {
+  if (confirm('Permanently delete this journal entry?')) {
     trades = trades.filter(t => t.id !== id);
     await saveTradesToDB();
     renderDashboardVisuals();
@@ -375,6 +377,7 @@ document.getElementById('viewAllExecutionsBtn').addEventListener('click', () => 
   document.querySelector('.nav-item[data-target="view-history"]').click();
 });
 
+// Render Rich Reflection Journal Card
 function createTradeCardHtml(trade) {
   const isWin = trade.pnl > 0;
   const isLoss = trade.pnl < 0;
@@ -386,12 +389,15 @@ function createTradeCardHtml(trade) {
     ? new Date(trade.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '';
 
+  const stars = '⭐'.repeat(parseInt(trade.executionRating) || 5);
+
   return `
     <li class="trade-card ${statusClass}">
       <div class="trade-header">
         <div class="trade-symbol-group">
           <span class="trade-symbol">${trade.symbol}</span>
           <span class="direction-badge ${trade.direction.toLowerCase()}">${trade.direction}</span>
+          <span class="grade-badge grade-${(trade.setupGrade || 'A').toLowerCase().replace('+', 'plus')}">Grade ${trade.setupGrade || 'A'}</span>
           <span style="font-size: 11px; color: var(--text-muted);">${formattedDate}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 16px;">
@@ -404,22 +410,35 @@ function createTradeCardHtml(trade) {
         <span class="badge badge-accent">${trade.session}</span>
         <span class="badge">Bias: ${trade.htfBias}</span>
         <span class="badge">Zone: ${trade.poiType}</span>
-        ${trade.liquidityTarget ? `<span class="badge">Target: ${trade.liquidityTarget}</span>` : ''}
-        <span class="badge">Planned: ${trade.plannedRR}</span>
+        <span class="badge">Mindset: ${trade.mindsetState || 'Calm'}</span>
+        ${trade.mistakeTag && trade.mistakeTag !== 'None' ? `<span class="badge badge-warning">Mistake: ${trade.mistakeTag}</span>` : ''}
+        <span class="badge">Execution: ${stars}</span>
       </div>
 
       <div class="trade-data-grid">
         <div class="data-item"><span class="data-label">Entry</span><span class="data-value">${trade.entryPrice}</span></div>
         <div class="data-item"><span class="data-label">Stop Loss</span><span class="data-value">${trade.stopLoss}</span></div>
         <div class="data-item"><span class="data-label">Take Profit</span><span class="data-value">${trade.takeProfit}</span></div>
+        <div class="data-item"><span class="data-label">Planned R:R</span><span class="data-value">${trade.plannedRR}</span></div>
       </div>
 
-      ${trade.notes ? `<div class="trade-notes">${trade.notes}</div>` : ''}
+      ${trade.preTradeThought ? `
+        <div class="journal-note pre-note">
+          <div class="journal-note-title">🧠 Pre-Trade Context & Plan:</div>
+          <div>${trade.preTradeThought}</div>
+        </div>
+      ` : ''}
+
+      ${trade.postTradeThought ? `
+        <div class="journal-note post-note">
+          <div class="journal-note-title">📝 Post-Trade Reflection & Lesson:</div>
+          <div>${trade.postTradeThought}</div>
+        </div>
+      ` : ''}
 
       <div class="trade-footer">
         <div class="chart-links">
-          ${trade.htfChart ? `<a href="${trade.htfChart}" target="_blank" class="chart-link">↗ HTF Zone</a>` : ''}
-          ${trade.ltfChart ? `<a href="${trade.ltfChart}" target="_blank" class="chart-link">↗ LTF Execution</a>` : ''}
+          ${trade.htfChart ? `<a href="${trade.htfChart}" target="_blank" class="chart-link">↗ View Chart Screenshot</a>` : ''}
         </div>
         <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">ID: #${trade.id.toString().slice(-6)}</span>
       </div>
@@ -437,13 +456,14 @@ function renderTrades() {
   const filteredTrades = trades.filter(t => {
     const matchesSearch = t.symbol.toLowerCase().includes(searchTerm) ||
                           t.poiType.toLowerCase().includes(searchTerm) ||
-                          t.liquidityTarget.toLowerCase().includes(searchTerm);
+                          (t.mistakeTag && t.mistakeTag.toLowerCase().includes(searchTerm)) ||
+                          (t.setupGrade && t.setupGrade.toLowerCase().includes(searchTerm));
     const matchesSession = sessionFilter === 'ALL' || t.session === sessionFilter;
     return matchesSearch && matchesSession;
   });
 
   if (filteredTrades.length === 0) {
-    listEl.innerHTML = `<div class="empty-state" style="padding:48px; text-align:center; color:var(--text-muted);">No records found matching active criteria.</div>`;
+    listEl.innerHTML = `<div class="empty-state" style="padding:48px; text-align:center; color:var(--text-muted);">No journal entries matching active criteria.</div>`;
     return;
   }
 
@@ -519,7 +539,7 @@ function openDayModal(dateStr, dayTrades) {
   const modalList = document.getElementById('modalTradeList');
 
   const formattedTitleDate = new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-  modalTitle.innerText = `Executions: ${formattedTitleDate}`;
+  modalTitle.innerText = `Journal Entries: ${formattedTitleDate}`;
   modalList.innerHTML = '';
 
   dayTrades.forEach(t => { modalList.innerHTML += createTradeCardHtml(t); });
@@ -542,9 +562,9 @@ document.getElementById('exportJsonBtn').addEventListener('click', () => {
 
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   if (trades.length === 0) return alert("No active data available.");
-  const headers = ["ID", "Timestamp", "Symbol", "Direction", "Session", "HTF Bias", "Zone Type", "Target Zone", "Entry", "SL", "TP", "Planned RR", "P&L", "HTF Chart", "LTF Chart", "Notes"];
+  const headers = ["ID", "Timestamp", "Symbol", "Direction", "Session", "Setup Grade", "Execution Rating", "Mindset", "Mistake Tag", "HTF Bias", "Zone Type", "Entry", "SL", "TP", "Planned RR", "P&L", "Chart Link", "Pre-Trade Reflection", "Post-Trade Reflection"];
   const escapeCsvCell = (cell) => `"${String(cell || '').replace(/"/g, '""')}"`;
-  const rows = trades.map(t => [t.id, t.timestamp, t.symbol, t.direction, t.session, t.htfBias, t.poiType, t.liquidityTarget, t.entryPrice, t.stopLoss, t.takeProfit, t.plannedRR, t.pnl, t.htfChart, t.ltfChart, t.notes].map(escapeCsvCell).join(','));
+  const rows = trades.map(t => [t.id, t.timestamp, t.symbol, t.direction, t.session, t.setupGrade, t.executionRating, t.mindsetState, t.mistakeTag, t.htfBias, t.poiType, t.entryPrice, t.stopLoss, t.takeProfit, t.plannedRR, t.pnl, t.htfChart, t.preTradeThought, t.postTradeThought].map(escapeCsvCell).join(','));
   const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -566,7 +586,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
         renderDashboardVisuals();
         renderTrades();
         renderCalendar();
-        alert('Database restored successfully!');
+        alert('Journal database restored successfully!');
       }
     } catch (err) { alert('Error parsing backup file.'); }
   };
@@ -574,7 +594,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 });
 
 document.getElementById('clearAllBtn').addEventListener('click', async () => {
-  if (confirm('Permanently clear all trade logs?')) {
+  if (confirm('Permanently clear all journal records?')) {
     trades = [];
     await saveTradesToDB();
     renderDashboardVisuals();
